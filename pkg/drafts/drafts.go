@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"strings"
 )
 
 // ---- Writing drafts ---------------------------------------------------------
@@ -96,13 +97,59 @@ func Tag(uuid string, tags ...string) {
 // ---- Reading drafts ---------------------------------------------------------
 
 // Get content of draft.
-// TODO: Is URL scheme /get more efficient? If so, create a separate function GetContent.
-// https://docs.getdrafts.com/docs/automation/urlschemes#get
 func Get(uuid string) Draft {
-	js := JS(getjs, uuid)
-	var d Draft
-	json.Unmarshal([]byte(js), &d)
-	return d
+	script := fmt.Sprintf(`tell application "Drafts"
+	set d to draft id "%s"
+	set folder_name to "inbox"
+	if isTrashed of d then
+		set folder_name to "trash"
+	else if isArchived of d then
+		set folder_name to "archive"
+	end if
+	set tag_list to tags of d
+	set tag_str to ""
+	repeat with t in tag_list
+		if tag_str is not "" then
+			set tag_str to tag_str & "|||"
+		end if
+		set tag_str to tag_str & t
+	end repeat
+	return (id of d) & "	" & (title of d) & "	" & (content of d) & "	" & folder_name & "	" & (flagged of d) & "	" & (isArchived of d) & "	" & (isTrashed of d) & "	" & tag_str & "	" & ((createdAt of d) as string) & "	" & ((modifiedAt of d) as string) & "	" & (permalink of d)
+end tell`, escapeForAppleScript(uuid))
+
+	output, err := runAppleScript(script)
+	if err != nil {
+		return Draft{}
+	}
+
+	return parseDraftFromAppleScript(output)
+}
+
+// parseDraftFromAppleScript parses tab-separated AppleScript output into a Draft
+func parseDraftFromAppleScript(output string) Draft {
+	parts := strings.Split(output, "\t")
+	if len(parts) < 11 {
+		return Draft{}
+	}
+
+	tags := []string{}
+	if parts[7] != "" {
+		tags = strings.Split(parts[7], "|||")
+	}
+
+	return Draft{
+		UUID:       parts[0],
+		Title:      parts[1],
+		Content:    parts[2],
+		Folder:     parts[3],
+		IsFlagged:  parts[4] == "true",
+		IsArchived: parts[5] == "true",
+		IsTrashed:  parts[6] == "true",
+		Tags:       tags,
+		CreatedAt:  parts[8],
+		ModifiedAt: parts[9],
+		Permalink:  parts[10],
+	}
 }
 
 // Query for drafts.
