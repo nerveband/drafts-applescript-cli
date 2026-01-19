@@ -86,7 +86,7 @@ end tell`, escapeForAppleScript(uuid), escapeForAppleScript(text))
 func Trash(uuid string) {
 	script := fmt.Sprintf(`tell application "Drafts"
 	set d to draft id "%s"
-	set isTrashed of d to true
+	set folder of d to trash
 end tell`, escapeForAppleScript(uuid))
 
 	runAppleScript(script)
@@ -96,7 +96,7 @@ end tell`, escapeForAppleScript(uuid))
 func Archive(uuid string) {
 	script := fmt.Sprintf(`tell application "Drafts"
 	set d to draft id "%s"
-	set isArchived of d to true
+	set folder of d to archive
 end tell`, escapeForAppleScript(uuid))
 
 	runAppleScript(script)
@@ -129,11 +129,13 @@ end tell`, escapeForAppleScript(uuid), tagsToAppleScript(tags))
 func Get(uuid string) Draft {
 	script := fmt.Sprintf(`tell application "Drafts"
 	set d to draft id "%s"
-	set folder_name to "inbox"
-	if isTrashed of d then
-		set folder_name to "trash"
-	else if isArchived of d then
-		set folder_name to "archive"
+	set folder_name to folder of d as string
+	set is_archived to false
+	set is_trashed to false
+	if folder_name is "archive" then
+		set is_archived to true
+	else if folder_name is "trash" then
+		set is_trashed to true
 	end if
 	set tag_list to tags of d
 	set tag_str to ""
@@ -143,7 +145,7 @@ func Get(uuid string) Draft {
 		end if
 		set tag_str to tag_str & t
 	end repeat
-	return (id of d) & "	" & (title of d) & "	" & (content of d) & "	" & folder_name & "	" & (flagged of d) & "	" & (isArchived of d) & "	" & (isTrashed of d) & "	" & tag_str & "	" & ((createdAt of d) as string) & "	" & ((modifiedAt of d) as string) & "	" & (permalink of d)
+	return (id of d) & "	" & (title of d) & "	" & (content of d) & "	" & folder_name & "	" & (flagged of d) & "	" & is_archived & "	" & is_trashed & "	" & tag_str & "	" & ((createdAt of d) as string) & "	" & ((modifiedAt of d) as string) & "	" & (permalink of d)
 end tell`, escapeForAppleScript(uuid))
 
 	output, err := runAppleScript(script)
@@ -183,27 +185,30 @@ func parseDraftFromAppleScript(output string) Draft {
 
 // Query for drafts.
 func Query(queryString string, filter Filter, opt QueryOptions) []Draft {
-	filterClause := "inbox"
-	if filter == FilterArchive {
-		filterClause = "archive"
-	} else if filter == FilterTrash {
-		filterClause = "trash"
-	} else if filter == FilterAll {
-		filterClause = "all"
+	// Build the folder filter clause
+	var folderFilter string
+	switch filter {
+	case FilterArchive:
+		folderFilter = "whose folder is archive"
+	case FilterTrash:
+		folderFilter = "whose folder is trash"
+	case FilterAll:
+		folderFilter = "" // No filter
+	default: // FilterInbox, FilterFlagged
+		folderFilter = "whose folder is inbox"
 	}
 
-	// For "all", we need to get from all folders
-	var script string
-	if filterClause == "all" {
-		script = `tell application "Drafts"
+	script := fmt.Sprintf(`tell application "Drafts"
 	set output to ""
-	set allDrafts to every draft
+	set allDrafts to every draft %s
 	repeat with d in allDrafts
-		set folder_name to "inbox"
-		if isTrashed of d then
-			set folder_name to "trash"
-		else if isArchived of d then
-			set folder_name to "archive"
+		set folder_name to folder of d as string
+		set is_archived to false
+		set is_trashed to false
+		if folder_name is "archive" then
+			set is_archived to true
+		else if folder_name is "trash" then
+			set is_trashed to true
 		end if
 		set tag_list to tags of d
 		set tag_str to ""
@@ -213,7 +218,7 @@ func Query(queryString string, filter Filter, opt QueryOptions) []Draft {
 			end if
 			set tag_str to tag_str & t
 		end repeat
-		set line_out to (id of d) & "	" & (title of d) & "	" & (content of d) & "	" & folder_name & "	" & (flagged of d) & "	" & (isArchived of d) & "	" & (isTrashed of d) & "	" & tag_str & "	" & ((createdAt of d) as string) & "	" & ((modifiedAt of d) as string) & "	" & (permalink of d)
+		set line_out to (id of d) & "	" & (title of d) & "	" & (content of d) & "	" & folder_name & "	" & (flagged of d) & "	" & is_archived & "	" & is_trashed & "	" & tag_str & "	" & ((createdAt of d) as string) & "	" & ((modifiedAt of d) as string) & "	" & (permalink of d)
 		if output is "" then
 			set output to line_out
 		else
@@ -221,34 +226,7 @@ func Query(queryString string, filter Filter, opt QueryOptions) []Draft {
 		end if
 	end repeat
 	return output
-end tell`
-	} else {
-		script = fmt.Sprintf(`tell application "Drafts"
-	set output to ""
-	set allDrafts to every draft whose isArchived is %t and isTrashed is %t
-	repeat with d in allDrafts
-		set folder_name to "%s"
-		set tag_list to tags of d
-		set tag_str to ""
-		repeat with t in tag_list
-			if tag_str is not "" then
-				set tag_str to tag_str & "|||"
-			end if
-			set tag_str to tag_str & t
-		end repeat
-		set line_out to (id of d) & "	" & (title of d) & "	" & (content of d) & "	" & folder_name & "	" & (flagged of d) & "	" & (isArchived of d) & "	" & (isTrashed of d) & "	" & tag_str & "	" & ((createdAt of d) as string) & "	" & ((modifiedAt of d) as string) & "	" & (permalink of d)
-		if output is "" then
-			set output to line_out
-		else
-			set output to output & linefeed & line_out
-		end if
-	end repeat
-	return output
-end tell`,
-			filterClause == "archive",
-			filterClause == "trash",
-			filterClause)
-	}
+end tell`, folderFilter)
 
 	output, err := runAppleScript(script)
 	if err != nil {
