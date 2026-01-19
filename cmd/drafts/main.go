@@ -162,6 +162,10 @@ type RunCmd struct {
 	UUID   string `arg:"-u" help:"run action on existing draft by UUID"`
 }
 
+type SchemaCmd struct {
+	Command string `arg:"positional" help:"command name (omit for full schema)"`
+}
+
 func run(param *RunCmd) interface{} {
 	var text string
 
@@ -187,6 +191,10 @@ func run(param *RunCmd) interface{} {
 	}
 }
 
+func schema(param *SchemaCmd) interface{} {
+	return getSchema(param.Command)
+}
+
 // ---- Main -------------------------------------------------------------------
 
 func main() {
@@ -201,6 +209,7 @@ func main() {
 		Select  *SelectCmd  `arg:"subcommand:select" help:"select active draft using fzf"`
 		List    *ListCmd    `arg:"subcommand:list" help:"list drafts"`
 		Run     *RunCmd     `arg:"subcommand:run" help:"run a Drafts action"`
+		Schema  *SchemaCmd  `arg:"subcommand:schema" help:"output tool-use schema for LLM integration"`
 	}
 	p := arg.MustParse(&args)
 
@@ -229,5 +238,7 @@ func main() {
 		output(list(args.List))
 	case args.Run != nil:
 		output(run(args.Run))
+	case args.Schema != nil:
+		output(schema(args.Schema))
 	}
 }
