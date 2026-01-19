@@ -2,27 +2,41 @@ package drafts
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/url"
 )
 
 // ---- Writing drafts ---------------------------------------------------------
 
 // Create a new draft. Return new draft's UUID.
-// https://docs.getdrafts.com/docs/automation/urlschemes#create
 func Create(text string, opt CreateOptions) string {
-	v := url.Values{
-		"text":    []string{text},
-		"folder":  []string{opt.Folder.String()},
-		"flagged": []string{mustJSON(opt.Flagged)},
+	folder := "inbox"
+	if opt.Folder == FolderArchive {
+		folder = "archive"
 	}
-	if len(opt.Tags) > 0 {
-		v["tag"] = opt.Tags
+
+	flaggedStr := "false"
+	if opt.Flagged {
+		flaggedStr = "true"
 	}
+
+	script := fmt.Sprintf(`tell application "Drafts"
+	set d to make new draft with properties {content:"%s", flagged:%s, tags:%s}
+	set folder of d to %s
+	return id of d
+end tell`, escapeForAppleScript(text), flaggedStr, tagsToAppleScript(opt.Tags), folder)
+
+	uuid, err := runAppleScript(script)
+	if err != nil {
+		return ""
+	}
+
+	// Run action if specified
 	if opt.Action != "" {
-		v["action"] = []string{opt.Action}
+		RunActionOnDraft(opt.Action, uuid)
 	}
-	res := open("create", v)
-	return res.Get("uuid")
+
+	return uuid
 }
 
 // Prepend to an existing draft.

@@ -18,9 +18,11 @@ func runAppleScript(script string) (string, error) {
 
 // escapeForAppleScript escapes a string for use in AppleScript
 func escapeForAppleScript(s string) string {
-	// Escape backslashes first, then quotes
+	// Escape backslashes first, then quotes, then newlines
 	s = strings.ReplaceAll(s, "\\", "\\\\")
 	s = strings.ReplaceAll(s, "\"", "\\\"")
+	s = strings.ReplaceAll(s, "\n", "\\n")
+	s = strings.ReplaceAll(s, "\r", "\\r")
 	return s
 }
 
@@ -34,4 +36,16 @@ func tagsToAppleScript(tags []string) string {
 		escaped[i] = fmt.Sprintf("\"%s\"", escapeForAppleScript(t))
 	}
 	return "{" + strings.Join(escaped, ", ") + "}"
+}
+
+// RunActionOnDraft runs an action on an existing draft.
+// TODO: Full implementation in Task 7
+func RunActionOnDraft(action, uuid string) error {
+	script := fmt.Sprintf(`tell application "Drafts"
+	set d to draft id "%s"
+	execute (action named "%s") with draft d
+end tell`, escapeForAppleScript(uuid), escapeForAppleScript(action))
+
+	_, err := runAppleScript(script)
+	return err
 }
