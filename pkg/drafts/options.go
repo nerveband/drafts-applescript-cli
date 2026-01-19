@@ -4,6 +4,7 @@ type CreateOptions struct {
 	Tags    []string
 	Folder  Folder
 	Flagged bool
+	Action  string
 }
 
 type QueryOptions struct {
@@ -12,4 +13,9 @@ type QueryOptions struct {
 	Sort             Sort
 	SortDescending   bool
 	SortFlaggedToTop bool
+}
+
+type ModifyOptions struct {
+	Tags   []string
+	Action string
 }

@@ -18,26 +18,43 @@ func Create(text string, opt CreateOptions) string {
 	if len(opt.Tags) > 0 {
 		v["tag"] = opt.Tags
 	}
+	if opt.Action != "" {
+		v["action"] = []string{opt.Action}
+	}
 	res := open("create", v)
 	return res.Get("uuid")
 }
 
 // Prepend to an existing draft.
 // https://docs.getdrafts.com/docs/automation/urlschemes#prepend
-func Prepend(uuid, text string) {
-	open("prepend", url.Values{
+func Prepend(uuid, text string, opt ModifyOptions) {
+	v := url.Values{
 		"uuid": []string{uuid},
 		"text": []string{text},
-	})
+	}
+	if len(opt.Tags) > 0 {
+		v["tag"] = opt.Tags
+	}
+	if opt.Action != "" {
+		v["action"] = []string{opt.Action}
+	}
+	open("prepend", v)
 }
 
 // Append to an existing draft.
 // https://docs.getdrafts.com/docs/automation/urlschemes#prepend
-func Append(uuid, text string) {
-	open("append", url.Values{
+func Append(uuid, text string, opt ModifyOptions) {
+	v := url.Values{
 		"uuid": []string{uuid},
 		"text": []string{text},
-	})
+	}
+	if len(opt.Tags) > 0 {
+		v["tag"] = opt.Tags
+	}
+	if opt.Action != "" {
+		v["action"] = []string{opt.Action}
+	}
+	open("append", v)
 }
 
 // Replace content of an existing draft.

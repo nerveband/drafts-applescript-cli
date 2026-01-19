@@ -19,47 +19,56 @@ type NewCmd struct {
 	Tag     []string `arg:"-t,separate" help:"tag"`
 	Archive bool     `arg:"-a" help:"create draft in archive"`
 	Flagged bool     `arg:"-f" help:"create flagged draft"`
+	Action  string   `arg:"--action" help:"action to run after creation"`
 }
 
 func new(param *NewCmd) interface{} {
-	// Input
 	text := orStdin(param.Message)
-
-	// Params -> Options
 	opt := drafts.CreateOptions{
 		Tags:    param.Tag,
 		Flagged: param.Flagged,
+		Action:  param.Action,
 	}
-
 	if param.Archive {
 		opt.Folder = drafts.FolderArchive
 	}
-
 	uuid := drafts.Create(text, opt)
 	return drafts.Get(uuid)
 }
 
 type PrependCmd struct {
-	Message string `arg:"positional" help:"text to prepend (omit to use stdin)"`
-	UUID    string `arg:"-u" help:"UUID (omit to use active draft)"`
+	Message string   `arg:"positional" help:"text to prepend (omit to use stdin)"`
+	UUID    string   `arg:"-u" help:"UUID (omit to use active draft)"`
+	Tag     []string `arg:"-t,separate" help:"tag to add"`
+	Action  string   `arg:"--action" help:"action to run after prepend"`
 }
 
 func prepend(param *PrependCmd) interface{} {
 	text := orStdin(param.Message)
 	uuid := orActive(param.UUID)
-	drafts.Prepend(uuid, text)
+	opt := drafts.ModifyOptions{
+		Tags:   param.Tag,
+		Action: param.Action,
+	}
+	drafts.Prepend(uuid, text, opt)
 	return drafts.Get(uuid)
 }
 
 type AppendCmd struct {
-	Message string `arg:"positional" help:"text to append (omit to use stdin)"`
-	UUID    string `arg:"-u" help:"UUID (omit to use active draft)"`
+	Message string   `arg:"positional" help:"text to append (omit to use stdin)"`
+	UUID    string   `arg:"-u" help:"UUID (omit to use active draft)"`
+	Tag     []string `arg:"-t,separate" help:"tag to add"`
+	Action  string   `arg:"--action" help:"action to run after append"`
 }
 
 func append(param *AppendCmd) interface{} {
 	text := orStdin(param.Message)
 	uuid := orActive(param.UUID)
-	drafts.Append(uuid, text)
+	opt := drafts.ModifyOptions{
+		Tags:   param.Tag,
+		Action: param.Action,
+	}
+	drafts.Append(uuid, text, opt)
 	return drafts.Get(uuid)
 }
 
