@@ -147,6 +147,37 @@ func list(param *ListCmd) interface{} {
 	}
 }
 
+type RunCmd struct {
+	Action string `arg:"positional,required" help:"action name to run"`
+	Text   string `arg:"positional" help:"text to process (omit to use stdin)"`
+	UUID   string `arg:"-u" help:"run action on existing draft by UUID"`
+}
+
+func run(param *RunCmd) interface{} {
+	var text string
+
+	if param.UUID != "" {
+		// Run action on existing draft
+		d := drafts.Get(param.UUID)
+		if d.UUID == "" {
+			outputError("DRAFT_NOT_FOUND",
+				fmt.Sprintf("No draft found with UUID: %s", param.UUID),
+				"Use 'drafts list' to see available drafts")
+		}
+		text = d.Content
+	} else {
+		// Run action on provided text or stdin
+		text = orStdin(param.Text)
+	}
+
+	result := drafts.RunAction(param.Action, text)
+
+	return map[string]interface{}{
+		"action": param.Action,
+		"result": result.Encode(),
+	}
+}
+
 // ---- Main -------------------------------------------------------------------
 
 func main() {
@@ -160,6 +191,7 @@ func main() {
 		Get     *GetCmd     `arg:"subcommand:get" help:"get content of draft"`
 		Select  *SelectCmd  `arg:"subcommand:select" help:"select active draft using fzf"`
 		List    *ListCmd    `arg:"subcommand:list" help:"list drafts"`
+		Run     *RunCmd     `arg:"subcommand:run" help:"run a Drafts action"`
 	}
 	p := arg.MustParse(&args)
 
@@ -186,5 +218,7 @@ func main() {
 		output(_select())
 	case args.List != nil:
 		output(list(args.List))
+	case args.Run != nil:
+		output(run(args.Run))
 	}
 }
