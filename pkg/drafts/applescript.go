@@ -39,13 +39,30 @@ func tagsToAppleScript(tags []string) string {
 }
 
 // RunActionOnDraft runs an action on an existing draft.
-// TODO: Full implementation in Task 7
 func RunActionOnDraft(action, uuid string) error {
 	script := fmt.Sprintf(`tell application "Drafts"
 	set d to draft id "%s"
-	execute (action named "%s") with draft d
+	set actionToRun to missing value
+	repeat with a in (every action)
+		if name of a is "%s" then
+			set actionToRun to a
+			exit repeat
+		end if
+	end repeat
+	if actionToRun is not missing value then
+		perform action actionToRun on draft d
+		return "success"
+	else
+		return "action not found"
+	end if
 end tell`, escapeForAppleScript(uuid), escapeForAppleScript(action))
 
-	_, err := runAppleScript(script)
-	return err
+	result, err := runAppleScript(script)
+	if err != nil {
+		return err
+	}
+	if result == "action not found" {
+		return fmt.Errorf("action not found: %s", action)
+	}
+	return nil
 }
