@@ -21,7 +21,7 @@ type NewCmd struct {
 	Flagged bool     `arg:"-f" help:"create flagged draft"`
 }
 
-func new(param *NewCmd) string {
+func new(param *NewCmd) interface{} {
 	// Input
 	text := orStdin(param.Message)
 
@@ -36,7 +36,7 @@ func new(param *NewCmd) string {
 	}
 
 	uuid := drafts.Create(text, opt)
-	return uuid
+	return drafts.Get(uuid)
 }
 
 type PrependCmd struct {
@@ -44,11 +44,11 @@ type PrependCmd struct {
 	UUID    string `arg:"-u" help:"UUID (omit to use active draft)"`
 }
 
-func prepend(param *PrependCmd) string {
+func prepend(param *PrependCmd) interface{} {
 	text := orStdin(param.Message)
 	uuid := orActive(param.UUID)
 	drafts.Prepend(uuid, text)
-	return drafts.Get(uuid).Content
+	return drafts.Get(uuid)
 }
 
 type AppendCmd struct {
@@ -56,11 +56,11 @@ type AppendCmd struct {
 	UUID    string `arg:"-u" help:"UUID (omit to use active draft)"`
 }
 
-func append(param *AppendCmd) string {
+func append(param *AppendCmd) interface{} {
 	text := orStdin(param.Message)
 	uuid := orActive(param.UUID)
 	drafts.Append(uuid, text)
-	return drafts.Get(uuid).Content
+	return drafts.Get(uuid)
 }
 
 type ReplaceCmd struct {
@@ -68,36 +68,42 @@ type ReplaceCmd struct {
 	UUID    string `arg:"-u" help:"UUID (omit to use active draft)"`
 }
 
-func replace(param *ReplaceCmd) string {
+func replace(param *ReplaceCmd) interface{} {
 	text := orStdin(param.Message)
 	uuid := orActive(param.UUID)
 	drafts.Replace(uuid, text)
-	return drafts.Get(uuid).Content
+	return drafts.Get(uuid)
 }
 
 type EditCmd struct {
 	UUID string `arg:"positional" help:"UUID (omit to use active draft)"`
 }
 
-func edit(param *EditCmd) string {
+func edit(param *EditCmd) interface{} {
 	uuid := orActive(param.UUID)
 	new := editor(drafts.Get(uuid).Content)
 	drafts.Replace(uuid, new)
-	return new
+	return drafts.Get(uuid)
 }
 
 type GetCmd struct {
 	UUID string `arg:"positional" help:"UUID (omit to use active draft)"`
 }
 
-func get(param *GetCmd) string {
+func get(param *GetCmd) interface{} {
 	uuid := orActive(param.UUID)
-	return drafts.Get(uuid).Content
+	d := drafts.Get(uuid)
+	if d.UUID == "" {
+		outputError("DRAFT_NOT_FOUND",
+			fmt.Sprintf("No draft found with UUID: %s", uuid),
+			"Use 'drafts list' to see available drafts")
+	}
+	return d
 }
 
 type SelectCmd struct{}
 
-func _select() string {
+func _select() interface{} {
 	ds := drafts.Query("", drafts.FilterInbox, drafts.QueryOptions{})
 	var b strings.Builder
 	linebreakRegex := regexp.MustCompile(`\n+`)
@@ -106,7 +112,7 @@ func _select() string {
 	}
 	uuid := fzfUUID(b.String())
 	drafts.Select(uuid)
-	return drafts.Get(uuid).Content
+	return drafts.Get(uuid)
 }
 
 type ListCmd struct {
@@ -131,19 +137,14 @@ func parseFilter(s string) drafts.Filter {
 	}
 }
 
-func list(param *ListCmd) string {
+func list(param *ListCmd) interface{} {
 	filter := parseFilter(param.Filter)
 	ds := drafts.Query("", filter, drafts.QueryOptions{Tags: param.Tag})
-	var b strings.Builder
-	linebreakRegex := regexp.MustCompile(`\n+`)
-	for _, d := range ds {
-		firstLine := linebreakRegex.Split(d.Content, 2)[0]
-		if len(firstLine) > 80 {
-			firstLine = firstLine[:77] + "..."
-		}
-		fmt.Fprintf(&b, "%s\t%s\n", d.UUID, firstLine)
+	return map[string]interface{}{
+		"drafts": ds,
+		"count":  len(ds),
+		"filter": param.Filter,
 	}
-	return strings.TrimSuffix(b.String(), "\n")
 }
 
 // ---- Main -------------------------------------------------------------------
