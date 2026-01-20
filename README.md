@@ -1,4 +1,4 @@
-# Drafts CLI
+# Drafts AppleScript CLI
 
 Command line interface for [Drafts](https://getdrafts.com) on macOS.
 
