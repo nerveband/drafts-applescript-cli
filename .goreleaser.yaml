@@ -3,14 +3,12 @@
 
 version: 2
 
-before:
-  hooks:
-    - go mod tidy
-
 builds:
   - id: "drafts"
     dir: "./cmd/drafts"
     binary: "drafts"
+    flags:
+      - -mod=readonly
     ldflags:
       - "-s -w -X main.version={{.Version}}"
     goos:
@@ -22,10 +20,17 @@ builds:
 archives:
   - id: drafts
     name_template: "{{ .Binary }}_{{ .Os }}_{{ .Arch }}"
-    builds:
+    ids:
       - drafts
     files:
-      - none*
+      - LICENSE
+      - CHANGELOG.md
+      - README.md
+      - AGENTS.md
+      - skills/SKILL.md
+      - docs/verification.md
+      - docs/review.md
+      - scripts/live-fixture-test.py
 
 checksum:
   name_template: "checksums.txt"

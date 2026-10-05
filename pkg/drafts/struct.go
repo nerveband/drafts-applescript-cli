@@ -3,6 +3,8 @@ package drafts
 const Separator = '|'
 
 type Draft struct {
+	AccessedAt        string   `json:"accessedAt,omitempty"`
+	FlagType          *int     `json:"flagType,omitempty"`
 	UUID              string   `json:"uuid"`
 	Content           string   `json:"content"`
 	Title             string   `json:"title"`

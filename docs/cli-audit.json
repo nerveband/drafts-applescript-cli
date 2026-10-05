@@ -1,0 +1,695 @@
+{
+  "date": "2026-10-05",
+  "version": "4.0.0",
+  "source": "https://github.com/nerveband/cli-best-practices/blob/main/scorecards/agent-cli-audit.md",
+  "advertised_checks": 85,
+  "actual_checks": 97,
+  "method": "Manual evidence assessment backed by synthetic subprocess tests and dictionary-only native QA. This is not a claim of 97 live end-to-end passes.",
+  "counts": {
+    "pass": 86,
+    "fail": 4,
+    "not_applicable": 6,
+    "unverified": 1
+  },
+  "checks": [
+    {
+      "id": "1.1",
+      "check": "Root help lists subcommands",
+      "status": "pass",
+      "evidence": "TestContractHelpAndSafety; offline version/schema commands",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "1.2",
+      "check": "Every subcommand has --help",
+      "status": "pass",
+      "evidence": "TestContractHelpAndSafety; offline version/schema commands",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "1.3",
+      "check": "Help includes examples",
+      "status": "pass",
+      "evidence": "TestContractHelpAndSafety; offline version/schema commands",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "1.4",
+      "check": "Examples use realistic values",
+      "status": "pass",
+      "evidence": "TestContractHelpAndSafety; offline version/schema commands",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "1.5",
+      "check": "Progressive disclosure works",
+      "status": "pass",
+      "evidence": "TestContractHelpAndSafety; offline version/schema commands",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "1.6",
+      "check": "Machine-readable help available",
+      "status": "pass",
+      "evidence": "TestContractHelpAndSafety; offline version/schema commands",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "1.7",
+      "check": "Version is queryable",
+      "status": "pass",
+      "evidence": "TestContractHelpAndSafety; offline version/schema commands",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "2.1",
+      "check": "JSON output available",
+      "status": "pass",
+      "evidence": "TestCLIWithSyntheticDrafts; TestCLIPartialActionError; output.go",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "2.2",
+      "check": "JSON is consistent across commands",
+      "status": "pass",
+      "evidence": "TestCLIWithSyntheticDrafts; TestCLIPartialActionError; output.go",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "2.3",
+      "check": "JSON is the default when piped",
+      "status": "pass",
+      "evidence": "TestCLIWithSyntheticDrafts; TestCLIPartialActionError; output.go",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "2.4",
+      "check": "Errors are structured",
+      "status": "pass",
+      "evidence": "TestCLIWithSyntheticDrafts; TestCLIPartialActionError; output.go",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "2.5",
+      "check": "Exit codes are meaningful",
+      "status": "pass",
+      "evidence": "TestCLIWithSyntheticDrafts; TestCLIPartialActionError; output.go",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "2.6",
+      "check": "Quiet mode suppresses noise",
+      "status": "pass",
+      "evidence": "TestCLIWithSyntheticDrafts; TestCLIPartialActionError; output.go",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "3.1",
+      "check": "All inputs via flags (non-interactive)",
+      "status": "fail",
+      "evidence": "TestCLIContentSourcesPreserveBytes; TestCLIFailFastAndStrictInput; README input contract",
+      "note": "edit/select are intentionally interactive; script with replace/open instead. Some identifiers remain positional."
+    },
+    {
+      "id": "3.2",
+      "check": "Stdin accepted for structured input",
+      "status": "pass",
+      "evidence": "TestCLIContentSourcesPreserveBytes; TestCLIFailFastAndStrictInput; README input contract",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "3.3",
+      "check": "Env vars for auth",
+      "status": "not_applicable",
+      "evidence": "TestCLIContentSourcesPreserveBytes; TestCLIFailFastAndStrictInput; README input contract",
+      "note": "macOS Automation permission, no CLI API credential flow."
+    },
+    {
+      "id": "3.4",
+      "check": "Flags over positional args",
+      "status": "pass",
+      "evidence": "TestCLIContentSourcesPreserveBytes; TestCLIFailFastAndStrictInput; README input contract",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "3.5",
+      "check": "Raw payload passthrough",
+      "status": "not_applicable",
+      "evidence": "TestCLIContentSourcesPreserveBytes; TestCLIFailFastAndStrictInput; README input contract",
+      "note": "External AppleScript has no native JSON HTTP request body. Internal JavaScript payloads are not external API payloads."
+    },
+    {
+      "id": "4.1",
+      "check": "Dry-run exists",
+      "status": "pass",
+      "evidence": "TestNoEventsForEveryMutationPreview; TestSnapshotsAndUncertainReceipts; policy.go",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "4.2",
+      "check": "Dry-run on ALL mutating commands",
+      "status": "pass",
+      "evidence": "TestNoEventsForEveryMutationPreview; TestSnapshotsAndUncertainReceipts; policy.go",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "4.3",
+      "check": "Dry-run output describes the action",
+      "status": "pass",
+      "evidence": "TestNoEventsForEveryMutationPreview; TestSnapshotsAndUncertainReceipts; policy.go",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "4.4",
+      "check": "Confirmation skip flag",
+      "status": "pass",
+      "evidence": "TestNoEventsForEveryMutationPreview; TestSnapshotsAndUncertainReceipts; policy.go",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "4.5",
+      "check": "Idempotent operations",
+      "status": "pass",
+      "evidence": "TestNoEventsForEveryMutationPreview; TestSnapshotsAndUncertainReceipts; policy.go",
+      "note": "Opt-in idempotency keys prevent duplicate creates/submissions. State assignments are repeatable; append without a key is intentionally additive."
+    },
+    {
+      "id": "4.6",
+      "check": "Safety metadata exposed",
+      "status": "pass",
+      "evidence": "TestNoEventsForEveryMutationPreview; TestSnapshotsAndUncertainReceipts; policy.go",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "5.1",
+      "check": "Errors are actionable",
+      "status": "pass",
+      "evidence": "TestCLIFailFastAndStrictInput; TestCLIPartialActionError; runtime executor tests",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "5.2",
+      "check": "Fail fast on missing input",
+      "status": "pass",
+      "evidence": "TestCLIFailFastAndStrictInput; TestCLIPartialActionError; runtime executor tests",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "5.3",
+      "check": "Network errors are distinct",
+      "status": "unverified",
+      "evidence": "TestCLIFailFastAndStrictInput; TestCLIPartialActionError; runtime executor tests",
+      "note": "UPDATE_ERROR is statically distinct; no real GitHub failure/update was invoked."
+    },
+    {
+      "id": "5.4",
+      "check": "Error includes hint for recovery",
+      "status": "pass",
+      "evidence": "TestCLIFailFastAndStrictInput; TestCLIPartialActionError; runtime executor tests",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "5.5",
+      "check": "Errors to stderr, data to stdout",
+      "status": "pass",
+      "evidence": "TestCLIFailFastAndStrictInput; TestCLIPartialActionError; runtime executor tests",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "5.6",
+      "check": "Enum errors enumerate valid values",
+      "status": "pass",
+      "evidence": "TestCLIFailFastAndStrictInput; TestCLIPartialActionError; runtime executor tests",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "5.7",
+      "check": "Validation happens before side effects",
+      "status": "pass",
+      "evidence": "TestCLIFailFastAndStrictInput; TestCLIPartialActionError; runtime executor tests",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "6.1",
+      "check": "Field selection available",
+      "status": "pass",
+      "evidence": "TestCLIWithSyntheticDrafts; TestListLimitsBeforeBodyFetch; native Count script compilation",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "6.2",
+      "check": "Pagination or limits",
+      "status": "pass",
+      "evidence": "TestCLIWithSyntheticDrafts; TestListLimitsBeforeBodyFetch; native Count script compilation",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "6.3",
+      "check": "ID-only mode",
+      "status": "pass",
+      "evidence": "TestCLIWithSyntheticDrafts; TestListLimitsBeforeBodyFetch; native Count script compilation",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "6.4",
+      "check": "Count without fetching",
+      "status": "pass",
+      "evidence": "TestCLIWithSyntheticDrafts; TestListLimitsBeforeBodyFetch; native Count script compilation",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "6.5",
+      "check": "Depth control",
+      "status": "not_applicable",
+      "evidence": "TestCLIWithSyntheticDrafts; TestListLimitsBeforeBodyFetch; native Count script compilation",
+      "note": "Draft/resource responses are flat. Field projection covers their bounded shape."
+    },
+    {
+      "id": "7.1",
+      "check": "Consistent command structure",
+      "status": "fail",
+      "evidence": "TestContractHelpAndSafety; README exit table; global option tags",
+      "note": "Draft operations use flat verbs, resource enumeration uses nouns. No uniform resource/verb hierarchy."
+    },
+    {
+      "id": "7.2",
+      "check": "Consistent flag names",
+      "status": "pass",
+      "evidence": "TestContractHelpAndSafety; README exit table; global option tags",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "7.3",
+      "check": "No surprises in output shape",
+      "status": "pass",
+      "evidence": "TestContractHelpAndSafety; README exit table; global option tags",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "7.4",
+      "check": "Documented exit code table",
+      "status": "pass",
+      "evidence": "TestContractHelpAndSafety; README exit table; global option tags",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "7.5",
+      "check": "Canonical verbs match common agent expectations",
+      "status": "pass",
+      "evidence": "TestContractHelpAndSafety; README exit table; global option tags",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "7.6",
+      "check": "Canonical flags are enforced across commands",
+      "status": "pass",
+      "evidence": "TestContractHelpAndSafety; README exit table; global option tags",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "7.7",
+      "check": "Banned aliases are checked mechanically",
+      "status": "pass",
+      "evidence": "TestContractHelpAndSafety; README exit table; global option tags",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "8.1",
+      "check": "AGENTS.md exists",
+      "status": "pass",
+      "evidence": "AGENTS.md; skills/SKILL.md; TestContractHelpAndSafety",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "8.2",
+      "check": "AGENTS.md includes guardrails",
+      "status": "pass",
+      "evidence": "AGENTS.md; skills/SKILL.md; TestContractHelpAndSafety",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "8.3",
+      "check": "Workflow examples exist",
+      "status": "pass",
+      "evidence": "AGENTS.md; skills/SKILL.md; TestContractHelpAndSafety",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "8.4",
+      "check": "Common mistakes documented",
+      "status": "pass",
+      "evidence": "AGENTS.md; skills/SKILL.md; TestContractHelpAndSafety",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "8.5",
+      "check": "Prompts or skills shipped",
+      "status": "pass",
+      "evidence": "AGENTS.md; skills/SKILL.md; TestContractHelpAndSafety",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "8.6",
+      "check": "SKILL.md is installable and scoped",
+      "status": "pass",
+      "evidence": "AGENTS.md; skills/SKILL.md; TestContractHelpAndSafety",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "8.7",
+      "check": "Skill and docs are validated against the live CLI",
+      "status": "pass",
+      "evidence": "AGENTS.md; skills/SKILL.md; TestContractHelpAndSafety",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "9.1",
+      "check": "Timeout handling",
+      "status": "pass",
+      "evidence": "TestExecutorStdinTimeoutAndRedaction; TestPartialFailureReceipt; TestSnapshotsAndUncertainReceipts",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "9.2",
+      "check": "Partial failure reporting",
+      "status": "pass",
+      "evidence": "TestExecutorStdinTimeoutAndRedaction; TestPartialFailureReceipt; TestSnapshotsAndUncertainReceipts",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "9.3",
+      "check": "Retry guidance",
+      "status": "pass",
+      "evidence": "TestExecutorStdinTimeoutAndRedaction; TestPartialFailureReceipt; TestSnapshotsAndUncertainReceipts",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "9.4",
+      "check": "Graceful degradation",
+      "status": "pass",
+      "evidence": "TestExecutorStdinTimeoutAndRedaction; TestPartialFailureReceipt; TestSnapshotsAndUncertainReceipts",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "9.5",
+      "check": "Async commands support --wait",
+      "status": "not_applicable",
+      "evidence": "TestExecutorStdinTimeoutAndRedaction; TestPartialFailureReceipt; TestSnapshotsAndUncertainReceipts",
+      "note": "Drafts exposes no supported action completion handle or polling endpoint. Do not fabricate wait."
+    },
+    {
+      "id": "9.6",
+      "check": "Durable job ledger exists",
+      "status": "pass",
+      "evidence": "TestExecutorStdinTimeoutAndRedaction; TestPartialFailureReceipt; TestSnapshotsAndUncertainReceipts",
+      "note": "Durable receipt ledger tracks submission only, not action completion; uncertain requests are blocked."
+    },
+    {
+      "id": "9.7",
+      "check": "Async retry policy is documented",
+      "status": "pass",
+      "evidence": "TestExecutorStdinTimeoutAndRedaction; TestPartialFailureReceipt; TestSnapshotsAndUncertainReceipts",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "10.1",
+      "check": "Single binary or simple install",
+      "status": "pass",
+      "evidence": "darwin arm64/amd64 builds; upgrade.go; app.go; README installation",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "10.2",
+      "check": "Self-update",
+      "status": "pass",
+      "evidence": "Temporary binary built with version 3.0.1 successfully upgraded to published 3.0.2 using GitHub download, checksum validation, and replacement; updated version command verified.",
+      "note": "Installed CLI was preserved. New release assets remain unpublished and therefore untested."
+    },
+    {
+      "id": "10.3",
+      "check": "Version mismatch warning",
+      "status": "pass",
+      "evidence": "darwin arm64/amd64 builds; upgrade.go; app.go; README installation",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "10.4",
+      "check": "Agent-friendly auth setup",
+      "status": "not_applicable",
+      "evidence": "darwin arm64/amd64 builds; upgrade.go; app.go; README installation",
+      "note": "Automation approval is owned by macOS and may require human consent. No credential login API."
+    },
+    {
+      "id": "10.5",
+      "check": "Offline/local mode is explicit when available",
+      "status": "pass",
+      "evidence": "darwin arm64/amd64 builds; upgrade.go; app.go; README installation",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "11.1",
+      "check": "Human help exists",
+      "status": "pass",
+      "evidence": "TestContractHelpAndSafety; schema.go; embedded skills",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "11.2",
+      "check": "Agent-context is versioned",
+      "status": "pass",
+      "evidence": "TestContractHelpAndSafety; schema.go; embedded skills",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "11.3",
+      "check": "Agent-context exposes command metadata",
+      "status": "pass",
+      "evidence": "TestContractHelpAndSafety; schema.go; embedded skills",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "11.4",
+      "check": "Request/response schemas are available",
+      "status": "pass",
+      "evidence": "TestContractHelpAndSafety; schema.go; embedded skills",
+      "note": "Request schemas and response descriptions are exposed. Dynamic diagnostic/config responses allow open object shapes."
+    },
+    {
+      "id": "11.5",
+      "check": "Skill path is discoverable",
+      "status": "pass",
+      "evidence": "TestContractHelpAndSafety; schema.go; embedded skills",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "12.1",
+      "check": "Profiles are supported",
+      "status": "pass",
+      "evidence": "TestAtomicArtifactAndProfiles; config source inspection; state.go",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "12.2",
+      "check": "Profile precedence is documented",
+      "status": "pass",
+      "evidence": "TestAtomicArtifactAndProfiles; config source inspection; state.go",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "12.3",
+      "check": "Profiles are exposed through agent-context",
+      "status": "pass",
+      "evidence": "TestAtomicArtifactAndProfiles; config source inspection; state.go",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "12.4",
+      "check": "Config source can be inspected",
+      "status": "pass",
+      "evidence": "TestAtomicArtifactAndProfiles; config source inspection; state.go",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "12.5",
+      "check": "Secrets are separated from non-secret config",
+      "status": "pass",
+      "evidence": "TestAtomicArtifactAndProfiles; config source inspection; state.go",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "13.1",
+      "check": "Artifact delivery sinks exist",
+      "status": "pass",
+      "evidence": "TestAtomicArtifactAndProfiles; feedback dry-run test; atomicWrite; schema feedback_url",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "13.2",
+      "check": "Delivery writes are atomic",
+      "status": "pass",
+      "evidence": "TestAtomicArtifactAndProfiles; feedback dry-run test; atomicWrite; schema feedback_url",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "13.3",
+      "check": "Unknown delivery schemes enumerate supported values",
+      "status": "pass",
+      "evidence": "TestAtomicArtifactAndProfiles; feedback dry-run test; atomicWrite; schema feedback_url",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "13.4",
+      "check": "Feedback can be recorded locally",
+      "status": "pass",
+      "evidence": "TestAtomicArtifactAndProfiles; feedback dry-run test; atomicWrite; schema feedback_url",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "13.5",
+      "check": "Optional upstream feedback is discoverable",
+      "status": "pass",
+      "evidence": "TestAtomicArtifactAndProfiles; feedback dry-run test; atomicWrite; schema feedback_url",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "14.1",
+      "check": "One source of truth exists",
+      "status": "fail",
+      "evidence": "schema.go; TestContractHelpAndSafety; verify.yml; curated docs",
+      "note": "Typed requests generate schemas, but parser adapters and curated docs remain separate. CI checks coverage/behavior rather than generating every surface."
+    },
+    {
+      "id": "14.2",
+      "check": "Contract validation runs in CI",
+      "status": "pass",
+      "evidence": "schema.go; TestContractHelpAndSafety; verify.yml; curated docs",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "14.3",
+      "check": "Generated files are clearly marked",
+      "status": "not_applicable",
+      "evidence": "schema.go; TestContractHelpAndSafety; verify.yml; curated docs",
+      "note": "No generated command surfaces; curated sources and embedded documentation are identified."
+    },
+    {
+      "id": "14.4",
+      "check": "Local/remote scope is part of the contract",
+      "status": "pass",
+      "evidence": "schema.go; TestContractHelpAndSafety; verify.yml; curated docs",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "14.5",
+      "check": "Tool/MCP descriptions are token-budgeted",
+      "status": "pass",
+      "evidence": "schema.go; TestContractHelpAndSafety; verify.yml; curated docs",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "15.1",
+      "check": "Human-readable mode remains available",
+      "status": "pass",
+      "evidence": "TestCLIWithSyntheticDrafts; TestOutputOptionsFailBeforeMutation; README/skill workflow",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "15.2",
+      "check": "JSON is concise, not a dump",
+      "status": "pass",
+      "evidence": "TestCLIWithSyntheticDrafts; TestOutputOptionsFailBeforeMutation; README/skill workflow",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "15.3",
+      "check": "Dangerous work requires explicit commitment",
+      "status": "pass",
+      "evidence": "TestCLIWithSyntheticDrafts; TestOutputOptionsFailBeforeMutation; README/skill workflow",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "15.4",
+      "check": "Flag aliases improve usability without hiding canonical names",
+      "status": "pass",
+      "evidence": "TestCLIWithSyntheticDrafts; TestOutputOptionsFailBeforeMutation; README/skill workflow",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "15.5",
+      "check": "Skill guidance favors composition over special agent-only behavior",
+      "status": "pass",
+      "evidence": "TestCLIWithSyntheticDrafts; TestOutputOptionsFailBeforeMutation; README/skill workflow",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "16.1",
+      "check": "Resource-based command structure maps to the API",
+      "status": "fail",
+      "evidence": "TestCLIContentSourcesPreserveBytes; JSONL/raw/projection tests; independently configured stderr",
+      "note": "Flat Drafts command vocabulary is preserved, no full resource-based hierarchy."
+    },
+    {
+      "id": "16.2",
+      "check": "Data and error output formats are independently configurable",
+      "status": "pass",
+      "evidence": "TestCLIContentSourcesPreserveBytes; JSONL/raw/projection tests; independently configured stderr",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "16.3",
+      "check": "Multiple structured output formats exist when useful",
+      "status": "pass",
+      "evidence": "TestCLIContentSourcesPreserveBytes; JSONL/raw/projection tests; independently configured stderr",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "16.4",
+      "check": "Output transforms are built in",
+      "status": "pass",
+      "evidence": "TestCLIContentSourcesPreserveBytes; JSONL/raw/projection tests; independently configured stderr",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "16.5",
+      "check": "File arguments are first-class and explicit",
+      "status": "pass",
+      "evidence": "TestCLIContentSourcesPreserveBytes; JSONL/raw/projection tests; independently configured stderr",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "17.1",
+      "check": "Local data layer exists for high-gravity resources",
+      "status": "pass",
+      "evidence": "TestSnapshotsAndUncertainReceipts; TestNativeAppleScript; FEATURE_GAP_ANALYSIS.md",
+      "note": "Explicit CLI-owned JSON snapshots, bounded local content search, no incremental feed or private SQLite access."
+    },
+    {
+      "id": "17.2",
+      "check": "Data source is explicit and controllable",
+      "status": "pass",
+      "evidence": "TestSnapshotsAndUncertainReceipts; TestNativeAppleScript; FEATURE_GAP_ANALYSIS.md",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "17.3",
+      "check": "Compound domain commands go beyond endpoint mirroring",
+      "status": "pass",
+      "evidence": "TestSnapshotsAndUncertainReceipts; TestNativeAppleScript; FEATURE_GAP_ANALYSIS.md",
+      "note": "info combines installation metadata, permission probing, optional folder counts, and resource enumeration."
+    },
+    {
+      "id": "17.4",
+      "check": "Proof-of-behavior checks exist",
+      "status": "pass",
+      "evidence": "TestSnapshotsAndUncertainReceipts; TestNativeAppleScript; FEATURE_GAP_ANALYSIS.md",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    },
+    {
+      "id": "17.5",
+      "check": "Provenance and competitor coverage are recorded",
+      "status": "pass",
+      "evidence": "TestSnapshotsAndUncertainReceipts; TestNativeAppleScript; FEATURE_GAP_ANALYSIS.md",
+      "note": "Assessed with synthetic/native helper tests or static repository evidence, not live private-library execution."
+    }
+  ]
+}

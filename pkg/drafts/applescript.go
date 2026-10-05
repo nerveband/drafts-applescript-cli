@@ -3,7 +3,6 @@ package drafts
 import (
 	"errors"
 	"fmt"
-	"os/exec"
 	"strings"
 )
 
@@ -15,12 +14,55 @@ var (
 
 // runAppleScript executes an AppleScript and returns the output
 func runAppleScript(script string) (string, error) {
-	cmd := exec.Command("osascript", "-e", script)
-	output, err := cmd.Output()
-	if err != nil {
-		return "", fmt.Errorf("applescript error: %w", err)
+	if err := requireCapability("core"); err != nil {
+		return "", err
 	}
-	return strings.TrimSpace(string(output)), nil
+	if !runtimeChecked {
+		running, err := IsRunning()
+		if err != nil {
+			return "", err
+		}
+		if !running {
+			return "", &Error{Code: "DRAFTS_NOT_RUNNING", Message: "selected Drafts app must already be running", Hint: "Open the selected app and retry", RetrySafe: true}
+		}
+		runtimeChecked = true
+	}
+	// Source goes through stdin, keeping note bodies out of child process arguments.
+	script = strings.ReplaceAll(script, `tell application "Drafts"`, applicationTell())
+	wrapped := "use framework \"Foundation\"\nuse scripting additions\nif not (application \"" + escapeForAppleScript(selectedApp.Path) + "\" is running) then error number -600\nusing terms from application \"" + escapeForAppleScript(selectedApp.Path) + "\"\n" + foundationHandlers + script + "\nend using terms from"
+	return scriptRunner(wrapped)
+}
+
+// PreflightMutation performs only read operations before reserving an idempotency key.
+func PreflightMutation(action, uuid string, flagType *int) error {
+	if err := requireCapability("core"); err != nil {
+		return err
+	}
+	if flagType != nil {
+		if err := requireCapability("flag_type"); err != nil {
+			return err
+		}
+	}
+	running, err := IsRunning()
+	if err != nil {
+		return err
+	}
+	if !running {
+		return &Error{Code: "DRAFTS_NOT_RUNNING", Message: "selected Drafts app must already be running", RetrySafe: true}
+	}
+	// Probe Automation permission using public app metadata, never library content.
+	if _, err := runAppleScript(`tell application "Drafts"
+ return version
+end tell`); err != nil {
+		return err
+	}
+	if err := preflightAction(action); err != nil {
+		return err
+	}
+	if uuid != "" {
+		return checkedDraft(uuid)
+	}
+	return nil
 }
 
 // escapeForAppleScript escapes a string for use in AppleScript
@@ -54,26 +96,53 @@ end tell`, objectSpecifier)
 	if err != nil {
 		return false, err
 	}
+	if output != "true" && output != "false" {
+		return false, &Error{Code: "INVALID_RESPONSE", Message: "invalid existence response"}
+	}
 	return output == "true", nil
 }
 
 // DraftExists reports whether a Drafts draft exists for the given UUID.
 func DraftExists(uuid string) (bool, error) {
+	if err := ValidateUUID(uuid); err != nil {
+		return false, err
+	}
 	return objectExists(fmt.Sprintf(`draft id "%s"`, escapeForAppleScript(uuid)))
 }
 
 // ActionExists reports whether a Drafts action exists by name.
 func ActionExists(name string) (bool, error) {
+	if err := ValidateName(name); err != nil {
+		return false, err
+	}
+	if err := requireCapability("action"); err != nil {
+		return false, err
+	}
 	return objectExists(fmt.Sprintf(`action "%s"`, escapeForAppleScript(name)))
 }
 
 // WorkspaceExists reports whether a Drafts workspace exists by name.
 func WorkspaceExists(name string) (bool, error) {
+	if err := ValidateName(name); err != nil {
+		return false, err
+	}
+	if err := requireCapability("workspace"); err != nil {
+		return false, err
+	}
 	return objectExists(fmt.Sprintf(`workspace "%s"`, escapeForAppleScript(name)))
 }
 
 // RunActionOnDraft runs an action on an existing draft.
 func RunActionOnDraft(action, uuid string) error {
+	if err := ValidateName(action); err != nil {
+		return err
+	}
+	if err := requireCapability("command.perform"); err != nil {
+		return err
+	}
+	if err := preflightAction(action); err != nil {
+		return err
+	}
 	exists, err := DraftExists(uuid)
 	if err != nil {
 		return err
@@ -84,27 +153,16 @@ func RunActionOnDraft(action, uuid string) error {
 
 	script := fmt.Sprintf(`tell application "Drafts"
 	set d to draft id "%s"
-	set actionToRun to missing value
-	repeat with a in (every action)
-		if name of a is "%s" then
-			set actionToRun to a
-			exit repeat
-		end if
-	end repeat
-	if actionToRun is not missing value then
-		perform action actionToRun on draft d
-		return "success"
-	else
-		return "action not found"
-	end if
+	perform action (action "%s") on draft d
+	return "submitted"
 end tell`, escapeForAppleScript(uuid), escapeForAppleScript(action))
 
 	result, err := runAppleScript(script)
 	if err != nil {
 		return err
 	}
-	if result == "action not found" {
-		return fmt.Errorf("%w: %s", ErrActionNotFound, action)
+	if result != "submitted" {
+		return &Error{Code: "INVALID_RESPONSE", Message: "action submission acknowledgement was invalid", UUID: uuid, Hint: "The action may have been submitted. Inspect the target before retrying."}
 	}
 	return nil
 }

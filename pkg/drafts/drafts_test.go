@@ -1,15 +1,20 @@
+//go:build integration
+
 package drafts
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"sort"
 	"testing"
 	"time"
 
-	"github.com/nerveband/drafts-applescript-cli/internal/assert"
+	"github.com/nerveband/drafts-applescript-cli/v4/internal/assert"
 )
 
 func TestCreateDefault(t *testing.T) {
+	requireIntegration(t)
 	text := rand()
 	uuid, err := Create(text, CreateOptions{})
 	requireNoError(t, err)
@@ -27,6 +32,7 @@ func TestCreateDefault(t *testing.T) {
 }
 
 func TestCreateFlagged(t *testing.T) {
+	requireIntegration(t)
 	text := rand()
 	uuid, err := Create(text, CreateOptions{Flagged: true})
 	requireNoError(t, err)
@@ -42,6 +48,7 @@ func TestCreateFlagged(t *testing.T) {
 }
 
 func TestCreateArchived(t *testing.T) {
+	requireIntegration(t)
 	text := rand()
 	uuid, err := Create(text, CreateOptions{Folder: FolderArchive})
 	requireNoError(t, err)
@@ -57,6 +64,7 @@ func TestCreateArchived(t *testing.T) {
 }
 
 func TestCreateTags(t *testing.T) {
+	requireIntegration(t)
 	text := rand()
 	tag := rand()
 	uuid, err := Create(text, CreateOptions{Tags: []string{tag}})
@@ -72,6 +80,7 @@ func TestCreateTags(t *testing.T) {
 }
 
 func TestPrepend(t *testing.T) {
+	requireIntegration(t)
 	text := rand()
 	prefix := rand()
 	uuid, err := Create(text, CreateOptions{})
@@ -87,6 +96,7 @@ func TestPrepend(t *testing.T) {
 }
 
 func TestAppend(t *testing.T) {
+	requireIntegration(t)
 	text := rand()
 	suffix := rand()
 	uuid, err := Create(text, CreateOptions{})
@@ -103,6 +113,7 @@ func TestAppend(t *testing.T) {
 }
 
 func TestReplace(t *testing.T) {
+	requireIntegration(t)
 	text := rand()
 	replacement := rand()
 	uuid, err := Create(text, CreateOptions{})
@@ -118,6 +129,7 @@ func TestReplace(t *testing.T) {
 }
 
 func TestTrash(t *testing.T) {
+	requireIntegration(t)
 	text := rand()
 	uuid, err := Create(text, CreateOptions{})
 	requireNoError(t, err)
@@ -131,9 +143,11 @@ func TestTrash(t *testing.T) {
 }
 
 func TestArchive(t *testing.T) {
+	requireIntegration(t)
 	text := rand()
 	uuid, err := Create(text, CreateOptions{})
 	requireNoError(t, err)
+	defer func() { requireNoError(t, Trash(uuid)) }()
 	requireNoError(t, Archive(uuid))
 	draft, err := Get(uuid)
 	requireNoError(t, err)
@@ -144,6 +158,7 @@ func TestArchive(t *testing.T) {
 }
 
 func TestQuery(t *testing.T) {
+	requireIntegration(t)
 	a, err := Create("A", CreateOptions{Tags: []string{"test", "a"}})
 	requireNoError(t, err)
 	b, err := Create("B", CreateOptions{Tags: []string{"test", "b"}, Flagged: true})
@@ -177,6 +192,7 @@ func TestQuery(t *testing.T) {
 }
 
 func TestSelect(t *testing.T) {
+	requireIntegration(t)
 	a, err := Create("a", CreateOptions{})
 	requireNoError(t, err)
 	b, err := Create("b", CreateOptions{})
@@ -202,7 +218,7 @@ func TestSelect(t *testing.T) {
 }
 
 func TestGetSpecialChars(t *testing.T) {
-	t.Skip()
+	requireIntegration(t)
 	// https://en.wikipedia.org/wiki/URL_encoding#Percent-encoding_reserved_characters
 	chars := []string{"␣", "!", "\"", "#", "$", "%", "&", "'", "(", ")", "*", "+", ",", "/", ":", ";", "=", "?", "@", "[", "]"}
 	for _, c := range chars {
@@ -219,6 +235,7 @@ func TestGetSpecialChars(t *testing.T) {
 }
 
 func TestTag(t *testing.T) {
+	requireIntegration(t)
 	text := rand()
 	tag := rand()
 	uuid, err := Create(text, CreateOptions{})
@@ -235,6 +252,7 @@ func TestTag(t *testing.T) {
 }
 
 func TestGetReturnsLocationFields(t *testing.T) {
+	requireIntegration(t)
 	text := rand()
 	uuid, err := Create(text, CreateOptions{})
 	requireNoError(t, err)
@@ -260,6 +278,7 @@ func TestGetReturnsLocationFields(t *testing.T) {
 }
 
 func TestSetFlagged(t *testing.T) {
+	requireIntegration(t)
 	text := rand()
 	uuid, err := Create(text, CreateOptions{})
 	requireNoError(t, err)
@@ -286,6 +305,7 @@ func TestSetFlagged(t *testing.T) {
 }
 
 func TestQueryContentSearch(t *testing.T) {
+	requireIntegration(t)
 	tag := rand()
 	needle := "UNIQUE_SEARCH_" + rand()
 
@@ -298,7 +318,7 @@ func TestQueryContentSearch(t *testing.T) {
 		requireNoError(t, Trash(b))
 	}()
 
-	// Search with content filter — should only return draft "a"
+	// Search with content filter, should only return draft "a"
 	results, err := Query(needle, FilterInbox, QueryOptions{Tags: []string{tag}})
 	requireNoError(t, err)
 	uuids := getUUIDs(results)
@@ -306,6 +326,7 @@ func TestQueryContentSearch(t *testing.T) {
 }
 
 func TestQueryFlagged(t *testing.T) {
+	requireIntegration(t)
 	tag := rand()
 
 	a, err := Create("flagged draft", CreateOptions{Tags: []string{tag}, Flagged: true})
@@ -327,6 +348,7 @@ func TestQueryFlagged(t *testing.T) {
 // ---- Workspace tests --------------------------------------------------------
 
 func TestQueryWorkspace(t *testing.T) {
+	requireIntegration(t)
 	results, err := QueryWorkspace("", "", FilterAll, QueryOptions{})
 	requireNoError(t, err)
 	// Empty workspace name should return empty slice, not nil
@@ -339,6 +361,7 @@ func TestQueryWorkspace(t *testing.T) {
 }
 
 func TestCurrentWorkspace(t *testing.T) {
+	requireIntegration(t)
 	ws, err := CurrentWorkspace()
 	requireNoError(t, err)
 	// Should return some string (Drafts always has a workspace)
@@ -348,6 +371,7 @@ func TestCurrentWorkspace(t *testing.T) {
 }
 
 func TestWorkspaces(t *testing.T) {
+	requireIntegration(t)
 	workspaces, err := Workspaces()
 	requireNoError(t, err)
 	if workspaces == nil {
@@ -388,4 +412,16 @@ func assertSameUUIDs(t *testing.T, want, got []string) {
 	sort.Strings(wantCopy)
 	sort.Strings(gotCopy)
 	assert.EqualSlice(t, wantCopy, gotCopy)
+}
+
+func requireIntegration(t *testing.T) {
+	t.Helper()
+	if os.Getenv("DRAFTS_INTEGRATION") != "1" || os.Getenv("DRAFTS_DISPOSABLE_LIBRARY") != "1" || !filepath.IsAbs(os.Getenv("DRAFTS_TEST_APP")) {
+		t.Skip("live tests require explicit integration/disposable-library gates and DRAFTS_TEST_APP")
+	}
+	app, err := InspectApp(os.Getenv("DRAFTS_TEST_APP"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	Configure(app, 30*time.Second)
 }

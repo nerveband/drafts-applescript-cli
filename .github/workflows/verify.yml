@@ -1,0 +1,21 @@
+name: Verify
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - run: make verify
+      - name: Build both release architectures
+        run: |
+          GOOS=darwin GOARCH=arm64 go build -mod=readonly -o "$RUNNER_TEMP/drafts-arm64" ./cmd/drafts
+          GOOS=darwin GOARCH=amd64 go build -mod=readonly -o "$RUNNER_TEMP/drafts-amd64" ./cmd/drafts
+      - name: Integration tests remain gated
+        run: go test -mod=readonly -tags integration ./pkg/drafts -run '^TestCreateDefault$' -v

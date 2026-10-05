@@ -13,7 +13,7 @@ const repoOwner = "nerveband"
 const repoName = "drafts-applescript-cli"
 
 // version is set at build time via ldflags
-var version = "3.0.2"
+var version = "4.0.0"
 
 type UpgradeResult struct {
 	Message         string `json:"message"`
@@ -23,10 +23,12 @@ type UpgradeResult struct {
 }
 
 func runUpgrade() interface{} {
+	ctx, cancel := context.WithTimeout(context.Background(), commandTimeout)
+	defer cancel()
 	// Create GitHub source (no auth needed for public repos)
 	source, err := selfupdate.NewGitHubSource(selfupdate.GitHubConfig{})
 	if err != nil {
-		outputError("PERMISSION_DENIED", fmt.Sprintf("failed to create update source: %v", err), "Check network access and try again")
+		outputError("UPDATE_ERROR", fmt.Sprintf("failed to create update source: %v", err), "Check network access and try again")
 	}
 
 	// Create updater with checksum validation
@@ -35,16 +37,16 @@ func runUpgrade() interface{} {
 		Validator: &selfupdate.ChecksumValidator{UniqueFilename: "checksums.txt"},
 	})
 	if err != nil {
-		outputError("PERMISSION_DENIED", fmt.Sprintf("failed to create updater: %v", err), "Check local filesystem permissions and try again")
+		outputError("UPDATE_ERROR", fmt.Sprintf("failed to create updater: %v", err), "Check local filesystem permissions and try again")
 	}
 
 	// Check for latest release
 	latest, found, err := updater.DetectLatest(
-		context.Background(),
+		ctx,
 		selfupdate.NewRepositorySlug(repoOwner, repoName),
 	)
 	if err != nil {
-		outputError("PERMISSION_DENIED", fmt.Sprintf("failed to check for updates: %v", err), "Check network access and the configured GitHub repository")
+		outputError("UPDATE_ERROR", fmt.Sprintf("failed to check for updates: %v", err), "Check network access and the configured GitHub repository")
 	}
 
 	if !found {
@@ -65,11 +67,11 @@ func runUpgrade() interface{} {
 
 	exe, err := selfupdate.ExecutablePath()
 	if err != nil {
-		outputError("PERMISSION_DENIED", fmt.Sprintf("failed to get executable path: %v", err), "Run the installed binary directly from disk and try again")
+		outputError("UPDATE_ERROR", fmt.Sprintf("failed to get executable path: %v", err), "Run the installed binary directly from disk and try again")
 	}
 
-	if err := updater.UpdateTo(context.Background(), latest, exe); err != nil {
-		outputError("PERMISSION_DENIED", fmt.Sprintf("failed to update: %v", err), "Check filesystem permissions for the installed binary and try again")
+	if err := updater.UpdateTo(ctx, latest, exe); err != nil {
+		outputError("UPDATE_ERROR", fmt.Sprintf("failed to update: %v", err), "Check filesystem permissions for the installed binary and try again")
 	}
 
 	return UpgradeResult{
@@ -81,9 +83,11 @@ func runUpgrade() interface{} {
 
 func runVersion() interface{} {
 	return map[string]interface{}{
-		"name":    "drafts",
-		"version": version,
-		"os":      runtime.GOOS,
-		"arch":    runtime.GOARCH,
+		"name":           "drafts",
+		"version":        version,
+		"repository":     repoURL,
+		"schema_version": "1",
+		"os":             runtime.GOOS,
+		"arch":           runtime.GOARCH,
 	}
 }

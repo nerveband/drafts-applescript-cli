@@ -1,298 +1,59 @@
 ---
-name: drafts
-description: Manage Drafts app notes via CLI on macOS. Create, view, list, edit, append, prepend, flag/unflag, manage workspaces, inspect actions, and run actions on drafts. Supports raw JSON payloads on mutating commands. Use when a user asks to create a note, list drafts, search drafts, flag/unflag drafts, run Drafts actions, or manage their Drafts inbox. IMPORTANT - Drafts app must be running on macOS for this to work.
-homepage: https://github.com/nerveband/drafts-applescript-cli
-metadata: {"clawdbot":{"emoji":"📋","os":["darwin"],"requires":{"bins":["drafts"]}}}
+name: drafts-applescript-cli
+description: Use this macOS AppleScript CLI to create, query, modify, organize, and submit actions on Drafts, with capability detection and explicit destructive commitment.
 ---
 
-# Drafts CLI
+# Drafts AppleScript CLI
 
-Manage [Drafts](https://getdrafts.com) notes from the terminal on macOS.
-
-## IMPORTANT REQUIREMENTS
-
-> **This CLI ONLY works on macOS with Drafts app running.**
-
-- **macOS only** - Uses AppleScript, will not work on Linux/Windows
-- **Drafts must be RUNNING** - The app must be open for any command to work
-- **Drafts Pro required** - Automation features require Pro subscription
-
-If commands fail or hang, first check: `open -a Drafts`
+Use the ordinary `drafts` commands. Confirm `drafts version` identifies this repository because the official Drafts MCP project also ships a command named `drafts`.
 
 ## Setup
 
-Install via Go:
-```bash
-go install github.com/nerveband/drafts-applescript-cli/cmd/drafts@latest
-```
+Requires macOS, Drafts Pro, and a running selected Drafts application for library commands. macOS Automation permission belongs to the calling terminal. `$EDITOR` and `fzf` are optional, used only by interactive commands. No helper app/action or API key is needed.
 
-Or build from source:
-```bash
-git clone https://github.com/nerveband/drafts-applescript-cli
-cd drafts-applescript-cli && go build ./cmd/drafts
-```
-
-## Commands
-
-### Create a Draft
-
-```bash
-# Simple draft
-drafts create "Meeting notes for Monday"
-
-# With tags
-drafts create "Shopping list" -t groceries -t todo
-
-# Flagged draft
-drafts create "Urgent reminder" -f
-
-# Create in archive
-drafts create "Reference note" -a
-
-# Raw JSON payload
-drafts create --input '{"content":"Agent-safe input","tags":["ai","cli"]}'
-```
-
-### List Drafts
-
-```bash
-# List inbox (default)
-drafts list
-
-# List archived drafts
-drafts list -f archive
-
-# List trashed drafts
-drafts list -f trash
-
-# List all drafts
-drafts list -f all
-
-# Filter by tag
-drafts list -t mytag
-
-# Search by content
-drafts list -s "search term"
-
-# Filter by workspace
-drafts list -w "My Workspace"
-
-# Combine filters
-drafts list -f inbox -t work -s "meeting"
-
-# Reduce response size (default is already 20)
-drafts list --limit 5
-
-# Include full content and coordinates
-drafts list --full -t work
-```
-
-### Get a Draft
-
-```bash
-# Get specific draft
-drafts get <uuid>
-
-# Get active draft (currently open in Drafts)
-drafts get
-```
-
-Returns full draft metadata including: uuid, content, title, tags, folder, flagged status, dates, location coordinates, and permalink.
-
-### Modify Drafts
-
-```bash
-# Prepend text
-drafts prepend "New first line" -u <uuid>
-
-# Append text
-drafts append "Added at the end" -u <uuid>
-
-# Replace entire content
-drafts replace "Completely new content" -u <uuid>
-```
-
-### Flag / Unflag Drafts
-
-```bash
-# Flag a draft
-drafts flag <uuid>
-
-# Flag active draft
-drafts flag
-
-# Unflag a draft
-drafts unflag <uuid>
-
-# Unflag active draft
-drafts unflag
-```
-
-### Workspaces
-
-```bash
-# Show current workspace
-drafts workspace
-
-# List all workspaces
-drafts workspace --list
-
-# Open a workspace
-drafts workspace --open Ideas
-```
-
-### Actions
-
-```bash
-# List all actions
-drafts actions
-
-# Filter actions by substring
-drafts actions -s Copy
-```
-
-### Edit in Editor
-
-```bash
-drafts edit <uuid>
-```
-
-### Run Actions
-
-```bash
-# Run action on text
-drafts run "Copy" "Text to copy to clipboard"
-
-# Run action on existing draft
-drafts run "Copy" -u <uuid>
-
-# Raw JSON payload
-drafts run --input '{"action":"Copy","uuid":"<uuid>"}'
-```
-
-### Get Schema
-
-```bash
-# Full schema for LLM integration
-drafts schema
-
-# Schema for specific command
-drafts schema create
-```
-
-### Environment Info
-
-```bash
-# Basic info (version, app status, counts)
+```sh
+drafts apps
+drafts schema --detected
 drafts info
-
-# Verbose (includes actions, tags, workspaces)
-drafts info --verbose
-
-# Test permissions
-drafts info --test-permissions
 ```
 
-### Self-Upgrade
+Select the exact app using `--app /Applications/Drafts.app`. `--channel auto|stable|beta` uses bundle evidence; unknown channel is never guessed from a version. Features are gated by dictionary capabilities, including optional flag types and workspace opening. Stable builds can support the same capabilities as beta builds.
 
-```bash
-drafts upgrade
+## Safe workflow
+
+```sh
+drafts create --input @payload.json --dry-run
+drafts create --input @payload.json --idempotency-key meeting-2026-10-05
+drafts list --limit 5 --sort modified --fields uuid,title
+drafts get 12345678-1234-1234-1234-123456789abc --format raw
+drafts replace -u 12345678-1234-1234-1234-123456789abc --text-file note.md --dry-run
+# Only after the user authorizes replacement:
+drafts replace -u 12345678-1234-1234-1234-123456789abc --text-file note.md --commit
+drafts trash 12345678-1234-1234-1234-123456789abc --dry-run
+drafts run --input '{"action":"Copy","uuid":"12345678-1234-1234-1234-123456789abc"}' --dry-run
 ```
 
-## Output Format
+- Replace/update and trash/delete require explicit UUIDs. Other supported commands can omit the UUID to target the active draft. Validate returned IDs before using them.
+- Preview mutations with `--dry-run`. Previews send no Apple events and do not prove target/action availability.
+- Replace/update, edit, trash/delete, and self-upgrade require `--commit`. Permission to inspect a library does not authorize its mutation or action execution.
+- `run` accepts exactly one of `uuid` or `content`. Content creates a persistent draft. Status `submitted` never promises completion. Actions may perform network or destructive work.
+- Create/action preflight checks action existence before changing content. Partial failures expose UUID and completed steps. Do not repeat completed steps.
+- Use `--idempotency-key` on create/run to prevent duplicates. `drafts jobs <key>` inspects durable receipts. An uncertain or interrupted request is blocked. Do not bypass it by changing the key without inspecting the target.
+- Never infer private JavaScript API access from the external AppleScript dictionary. Syntax, tasks, AI APIs, version history, and action-completion polling are unsupported.
+- Never read Drafts' private database directly or install the obsolete eval-based helper action.
 
-**JSON (default)** - All commands return structured JSON:
-```json
-{
-  "success": true,
-  "data": {
-    "uuid": "ABC123",
-    "content": "Note content",
-    "title": "Note title",
-    "tags": ["tag1", "tag2"],
-    "folder": "inbox",
-    "isFlagged": false,
-    "isArchived": false,
-    "isTrashed": false,
-    "createdAt": "2026-01-29 10:00:00",
-    "modifiedAt": "2026-01-29 10:30:00",
-    "createdLatitude": 37.7749,
-    "createdLongitude": -122.4194,
-    "modifiedLatitude": 37.7749,
-    "modifiedLongitude": -122.4194,
-    "permalink": "drafts://open?uuid=ABC123"
-  }
-}
-```
+## Composition and bounded output
 
-For `drafts list`, the default JSON omits `content` and location fields unless you pass `--full`.
+JSON is the default. Success goes to stdout; structured errors go to stderr. Use `--format-error plain` only when requested. Exit codes: 2 validation/commit, 3 not found/not running, 4 permission, 5 unsupported, 6 conflict, 7 timeout, 8 partial failure, 9 execution/output/update error. Timeouts can follow a completed mutation; inspect before retrying.
 
-**Plain text** - Human-readable output:
-```bash
-drafts list --plain
-```
+Use `drafts schema <command>` and `<command> --help` for supported flags and payloads. `list` defaults to 20 summaries. `--full` fetches returned bodies after limiting. `--count`, `--id-only`, and `--fields` reduce tokens. `--sort created|modified|accessed`, date bounds, omitted tags, and optional flag types are supported. Dates are UTC RFC3339 with second resolution. Search is literal containment, not Drafts' full query language.
 
-## Common Workflows
+Use `--input @payload.json` or `--input -` for raw JSON. Required content must be present; explicit empty content is allowed. Null, unknown, duplicate, and conflicting inputs fail. Use `--text-file` or explicit `--stdin` for exact UTF-8 content, including final newlines. Do not combine sources. Stdin has a 16 MiB cap and timeout. No shell expansion is applied to `$EDITOR` arguments.
 
-### Quick Capture
-```bash
-drafts create "Remember to call dentist tomorrow" -t reminder
-```
+`--deliver file:<path>` writes mode-600 output atomically, requiring `--overwrite` for existing paths. `--data-source local` on list/get reads an explicitly created CLI snapshot; it never refreshes automatically. `sync --full` persists private content only when explicitly invoked. Counts/search are bounded to cached rows and include provenance.
 
-### Daily Journal
-```bash
-drafts append "$(date): Completed project review" -u <journal-uuid>
-```
+Profiles store app/channel/timeout only: explicit flag > environment > selected profile > defaults. `drafts config` reports sources. Feedback stays local with `drafts feedback`; do not record private content or secrets.
 
-### Search and Review
-```bash
-# Search draft content
-drafts list -s "project alpha"
+## Repository work
 
-# List all drafts with a specific tag
-drafts list -t work
-
-# Get full content of a draft
-drafts get <uuid>
-```
-
-### Flag Important Items
-```bash
-# Flag a draft for attention
-drafts flag <uuid>
-
-# List flagged drafts
-drafts list -f flagged
-```
-
-### Workspace Filtering
-```bash
-# See current workspace
-drafts workspace
-
-# List drafts from a specific workspace
-drafts list -w "Work Projects"
-```
-
-## Troubleshooting
-
-**Commands fail or return empty:**
-1. Is Drafts running? → `open -a Drafts`
-2. Is Drafts Pro active? → Automation requires Pro
-3. Permissions granted? → System Settings > Privacy > Automation
-
-**Commands hang:**
-- Check if Drafts is showing a dialog
-
-## Notes
-
-- macOS ONLY (AppleScript-based)
-- Drafts app MUST be running
-- Requires Drafts Pro subscription
-- All UUIDs are Drafts-generated identifiers
-- Tags are case-sensitive
-- Drafts AppleScript does not expose syntax/language grammar, so this CLI does not surface a `syntax` command
-
-## Version
-
-v2.1.0
+Follow `AGENTS.md`. Run `make verify` for safe synthetic tests and contract checks. Never run live integration tests without explicit authorization for a disposable library. Optional dictionary compilation uses `DRAFTS_DICTIONARY_APP` and sends no Drafts events. Do not commit, push, release, self-upgrade, or publish without explicit user authorization.
